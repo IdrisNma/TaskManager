@@ -1,0 +1,177 @@
+@page "/tasks/create"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using TaskManager.Data
+@using TaskManager.Models
+@inject ApplicationDbContext Context
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>Create Task</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Create New Task</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@taskItem" OnValidSubmit="@HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger mb-3">@errorMessage</div>
+                        }
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <InputText id="title" @bind-Value="taskItem.Title" class="form-control" />
+                            <ValidationMessage For="@(() => taskItem.Title)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <InputTextArea id="description" @bind-Value="taskItem.Description" class="form-control" rows="3" />
+                            <ValidationMessage For="@(() => taskItem.Description)" class="text-danger" />
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dueDate" class="form-label">Due Date</label>
+                                    <InputDate id="dueDate" @bind-Value="taskItem.DueDate" class="form-control" />
+                                    <ValidationMessage For="@(() => taskItem.DueDate)" class="text-danger" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="priority" class="form-label">Priority</label>
+                                    <InputSelect id="priority" @bind-Value="taskItem.Priority" class="form-select">
+                                        <option value="">Choose priority...</option>
+                                        @foreach (TaskPriority priority in Enum.GetValues<TaskPriority>())
+                                        {
+                                            <option value="@priority">@priority</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => taskItem.Priority)" class="text-danger" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <InputSelect id="status" @bind-Value="taskItem.Status" class="form-select">
+                                        <option value="">Choose status...</option>
+                                        @foreach (TaskManager.Models.TaskStatus status in Enum.GetValues<TaskManager.Models.TaskStatus>())
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => taskItem.Status)" class="text-danger" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="assignedTo" class="form-label">Assign To</label>
+                                    <InputSelect id="assignedTo" @bind-Value="taskItem.AssignedToUserId" class="form-select">
+                                        <option value="">Choose user...</option>
+                                        @if (users != null)
+                                        {
+                                            @foreach (var user in users)
+                                            {
+                                                <option value="@user.Id">@user.Email</option>
+                                            }
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => taskItem.AssignedToUserId)" class="text-danger" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <InputTextArea id="notes" @bind-Value="taskItem.Notes" class="form-control" rows="2" />
+                            <ValidationMessage For="@(() => taskItem.Notes)" class="text-danger" />
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="/tasks" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span> Creating...</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-save"></i> <span> Create Task</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+@code {
+    private TaskItem taskItem = new();
+    private List<IdentityUser>? users;
+    private string? errorMessage;
+    private bool isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load users
+        users = await UserManager.Users.ToListAsync();
+        
+        // Set default values
+        taskItem = new TaskItem
+        {
+            DueDate = DateTime.Today.AddDays(1),
+            Priority = TaskPriority.Medium,
+            Status = TaskManager.Models.TaskStatus.Pending
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        errorMessage = string.Empty;
+        
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var currentUserId = UserManager.GetUserId(authState.User);
+            
+            taskItem.CreatedByUserId = currentUserId;
+            taskItem.CreatedAt = DateTime.UtcNow;
+
+            Context.Tasks.Add(taskItem);
+            await Context.SaveChangesAsync();
+
+            Navigation.NavigateTo("/tasks");
+        }
+        catch (Exception)
+        {
+            errorMessage = "An error occurred while creating the task. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
