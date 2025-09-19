@@ -1,0 +1,123 @@
+@page
+@model TaskManager.Pages.Tasks.IndexModel
+@{
+    ViewData["Title"] = "My Tasks";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h3">My Tasks</h1>
+                <a asp-page="./Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Task
+                </a>
+            </div>
+
+            @if (Model.Tasks.Any())
+            {
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Due Date</th>
+                                                <th>Priority</th>
+                                                <th>Status</th>
+                                                <th>Assigned To</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var task in Model.Tasks)
+                                            {
+                                                <tr class="@(task.Status == TaskManager.Models.TaskStatus.Completed ? "table-success" : task.DueDate < DateTime.Now && task.Status != TaskManager.Models.TaskStatus.Completed ? "table-warning" : "")">
+                                                    <td>
+                                                        <strong>@task.Title</strong>
+                                                        @if (!string.IsNullOrEmpty(task.Description))
+                                                        {
+                                                            <br><small class="text-muted">@task.Description</small>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @task.DueDate.ToString("MMM dd, yyyy")
+                                                        @if (task.DueDate < DateTime.Now && task.Status != TaskManager.Models.TaskStatus.Completed)
+                                                        {
+                                                            <br><small class="text-danger">Overdue</small>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge @(task.Priority switch 
+                                                        {
+                                                            TaskManager.Models.TaskPriority.Low => "bg-success",
+                                                            TaskManager.Models.TaskPriority.Medium => "bg-warning",
+                                                            TaskManager.Models.TaskPriority.High => "bg-danger",
+                                                            TaskManager.Models.TaskPriority.Critical => "bg-dark",
+                                                            _ => "bg-secondary"
+                                                        })">
+                                                            @task.Priority
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge @(task.Status switch 
+                                                        {
+                                                            TaskManager.Models.TaskStatus.Pending => "bg-secondary",
+                                                            TaskManager.Models.TaskStatus.InProgress => "bg-primary",
+                                                            TaskManager.Models.TaskStatus.Completed => "bg-success",
+                                                            TaskManager.Models.TaskStatus.Cancelled => "bg-danger",
+                                                            _ => "bg-secondary"
+                                                        })">
+                                                            @task.Status.ToString().Replace("InProgress", "In Progress")
+                                                        </span>
+                                                    </td>
+                                                    <td>@task.AssignedToUser?.UserName</td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <a asp-page="./Details" asp-route-id="@task.Id" class="btn btn-sm btn-outline-primary">
+                                                                <i class="fas fa-eye"></i> View
+                                                            </a>
+                                                            <a asp-page="./Edit" asp-route-id="@task.Id" class="btn btn-sm btn-outline-secondary">
+                                                                <i class="fas fa-edit"></i> Edit
+                                                            </a>
+                                                            @if (task.Status != TaskManager.Models.TaskStatus.Completed)
+                                                            {
+                                                                <form method="post" asp-page-handler="CompleteTask" asp-route-id="@task.Id" class="d-inline">
+                                                                    <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Mark this task as completed?')">
+                                                                        <i class="fas fa-check"></i> Complete
+                                                                    </button>
+                                                                </form>
+                                                            }
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No tasks found</h4>
+                    <p class="text-muted">Get started by creating your first task!</p>
+                    <a asp-page="./Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Task
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
