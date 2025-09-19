@@ -1,0 +1,27 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<ul class="navbar-nav">
+    <AuthorizeView>
+        <Authorized>
+            <li class="nav-item">
+                <a class="nav-link text-dark" href="/Identity/Account/Manage">Hello @context.User.Identity?.Name!</a>
+            </li>
+            <li class="nav-item">
+                <form method="post" action="/Identity/Account/Logout">
+                    <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+                </form>
+            </li>
+        </Authorized>
+        <NotAuthorized>
+            <li class="nav-item">
+                <a class="nav-link text-dark" href="/Identity/Account/Register">Register</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" href="/Identity/Account/Login">Login</a>
+            </li>
+        </NotAuthorized>
+    </AuthorizeView>
+</ul>

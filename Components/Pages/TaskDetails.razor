@@ -1,0 +1,213 @@
+@page "/tasks/details/{id:int}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using TaskManager.Data
+@using TaskManager.Models
+@inject ApplicationDbContext Context
+@inject UserManager<IdentityUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>Task Details</PageTitle>
+
+@if (taskItem == null)
+{
+    <div class="container">
+        <div class="alert alert-warning">
+            <h4>Task not found</h4>
+            <p>The requested task could not be found.</p>
+            <a href="/tasks" class="btn btn-primary">Back to Tasks</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">Task Details</h3>
+                        <div>
+                            <a href="/tasks/edit/@taskItem.Id" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="/tasks" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h2 class="mb-3">@taskItem.Title</h2>
+                                
+                                @if (!string.IsNullOrEmpty(taskItem.Description))
+                                {
+                                    <div class="mb-4">
+                                        <h5>Description</h5>
+                                        <p class="text-muted">@taskItem.Description</p>
+                                    </div>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(taskItem.Notes))
+                                {
+                                    <div class="mb-4">
+                                        <h5>Notes</h5>
+                                        <p class="text-muted">@taskItem.Notes</p>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Task Information</h6>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Status:</strong><br />
+                                            <span class="badge @GetStatusClass(taskItem.Status)">
+                                                @taskItem.Status
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Priority:</strong><br />
+                                            <span class="badge @GetPriorityClass(taskItem.Priority)">
+                                                @taskItem.Priority
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Due Date:</strong><br />
+                                            <span class="@GetDueDateClass(taskItem)">
+                                                @taskItem.DueDate.ToString("MMM dd, yyyy")
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Assigned To:</strong><br />
+                                            @taskItem.AssignedToUser?.Email
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Created By:</strong><br />
+                                            @taskItem.CreatedByUser?.Email
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Created At:</strong><br />
+                                            @taskItem.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                        </div>
+                                        
+                                        @if (taskItem.CompletedAt.HasValue)
+                                        {
+                                            <div class="mb-3">
+                                                <strong>Completed At:</strong><br />
+                                                @taskItem.CompletedAt.Value.ToString("MMM dd, yyyy HH:mm")
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                @if (taskItem.Status != TaskManager.Models.TaskStatus.Completed && CanUserCompleteTask())
+                                {
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-success w-100" @onclick="CompleteTask">
+                                            <i class="fas fa-check"></i> Mark as Completed
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+@code {
+    [Parameter] public int Id { get; set; }
+    
+    private TaskItem? taskItem;
+    private string? currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        currentUserId = UserManager.GetUserId(authState.User);
+        
+        await LoadTask();
+    }
+
+    private async Task LoadTask()
+    {
+        taskItem = await Context.Tasks
+            .Include(t => t.AssignedToUser)
+            .Include(t => t.CreatedByUser)
+            .FirstOrDefaultAsync(m => m.Id == Id);
+    }
+
+    private async Task CompleteTask()
+    {
+        if (taskItem == null) return;
+        
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Mark this task as completed?");
+        if (!confirmed) return;
+
+        if (taskItem.AssignedToUserId == currentUserId)
+        {
+            taskItem.Status = TaskManager.Models.TaskStatus.Completed;
+            taskItem.CompletedAt = DateTime.UtcNow;
+
+            await Context.SaveChangesAsync();
+            await LoadTask();
+            StateHasChanged();
+        }
+    }
+
+    private bool CanUserCompleteTask()
+    {
+        return taskItem?.AssignedToUserId == currentUserId;
+    }
+
+    private string GetDueDateClass(TaskItem task)
+    {
+        if (task.DueDate < DateTime.Now && task.Status != TaskManager.Models.TaskStatus.Completed)
+            return "text-danger fw-bold";
+        if (task.DueDate < DateTime.Now.AddDays(3))
+            return "text-warning";
+        return "";
+    }
+
+    private string GetPriorityClass(TaskPriority priority)
+    {
+        return priority switch
+        {
+            TaskPriority.Critical => "bg-danger",
+            TaskPriority.High => "bg-warning text-dark",
+            TaskPriority.Medium => "bg-info",
+            TaskPriority.Low => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusClass(TaskManager.Models.TaskStatus status)
+    {
+        return status switch
+        {
+            TaskManager.Models.TaskStatus.Pending => "bg-secondary",
+            TaskManager.Models.TaskStatus.InProgress => "bg-primary",
+            TaskManager.Models.TaskStatus.Completed => "bg-success",
+            TaskManager.Models.TaskStatus.Cancelled => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+}

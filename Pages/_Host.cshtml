@@ -1,0 +1,10 @@
+@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@namespace TaskManager.Components.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    Layout = "_HostLayout";
+}
+
+<component type="typeof(App)" render-mode="ServerPrerendered" />

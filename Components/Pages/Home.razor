@@ -1,0 +1,110 @@
+@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Task Manager - Home</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="jumbotron bg-primary text-white p-5 rounded">
+                <div class="text-center">
+                    <h1 class="display-4"><i class="fas fa-tasks"></i> Task Manager</h1>
+                    <p class="lead">Manage your daily tasks efficiently and stay organized with our comprehensive task management system.</p>
+                    <AuthorizeView>
+                        <Authorized>
+                            <div class="mt-4">
+                                <a class="btn btn-light btn-lg" href="/tasks">
+                                    <i class="fas fa-list"></i> View My Tasks
+                                </a>
+                                <a class="btn btn-outline-light btn-lg ms-2" href="/tasks/create">
+                                    <i class="fas fa-plus"></i> Create New Task
+                                </a>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+                            <div class="mt-4">
+                                <a class="btn btn-light btn-lg" href="/Identity/Account/Login">
+                                    <i class="fas fa-sign-in-alt"></i> Sign In to Get Started
+                                </a>
+                                <a class="btn btn-outline-light btn-lg ms-2" href="/Identity/Account/Register">
+                                    <i class="fas fa-user-plus"></i> Register
+                                </a>
+                            </div>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <AuthorizeView>
+        <Authorized>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-clipboard-list fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Task Management</h5>
+                            <p class="card-text">Create, assign, and track tasks with due dates and priorities.</p>
+                            <a href="/tasks/create" class="btn btn-primary">Create Task</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Team Collaboration</h5>
+                            <p class="card-text">Assign tasks to team members and track progress together.</p>
+                            <a href="/tasks" class="btn btn-success">View Tasks</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Progress Tracking</h5>
+                            <p class="card-text">Monitor task completion and stay on top of deadlines.</p>
+                            <a href="/tasks" class="btn btn-info">Track Progress</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle"></i> Getting Started
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-plus text-primary"></i> Create Your First Task</h6>
+                                    <p>Start by creating a new task with a title, description, due date, and priority level.</p>
+                                    
+                                    <h6><i class="fas fa-user-tag text-success"></i> Assign Tasks</h6>
+                                    <p>Assign tasks to yourself or other team members to distribute workload effectively.</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-check text-info"></i> Track Progress</h6>
+                                    <p>Update task status as you work through them: Pending → In Progress → Completed.</p>
+                                    
+                                    <h6><i class="fas fa-calendar text-warning"></i> Meet Deadlines</h6>
+                                    <p>Keep track of due dates and receive visual indicators for overdue tasks.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
