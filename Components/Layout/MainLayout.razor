@@ -30,7 +30,7 @@
 
     <div class="container">
         <main role="main" class="pb-3">
-            @ChildContent
+            @Body
         </main>
     </div>
 
@@ -43,5 +43,5 @@
 
 @code {
     [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+    public RenderFragment? Body { get; set; }
 }
