@@ -143,4 +143,3 @@
 /home/runner/work/TaskManager/TaskManager/obj/Debug/net8.0/staticwebassets.build.json.cache
 /home/runner/work/TaskManager/TaskManager/obj/Debug/net8.0/staticwebassets.build.endpoints.json
 /home/runner/work/TaskManager/TaskManager/obj/Debug/net8.0/TaskMana.F3FB485A.Up2Date
-/home/runner/work/TaskManager/TaskManager/bin/Debug/net8.0/app.db
