@@ -1,0 +1,111 @@
+@page
+@model TaskManager.Pages.Blog.DetailsModel
+@{
+    ViewData["Title"] = Model.BlogPost?.Title ?? "Post Details";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        @if (Model.BlogPost == null)
+        {
+            <div class="alert alert-danger">
+                <h4>Post not found</h4>
+                <p>The blog post you are looking for does not exist.</p>
+                <a asp-page="Index" class="btn btn-primary">Back to Blog</a>
+            </div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <a asp-page="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Blog
+                </a>
+            </div>
+
+            <article class="blog-post">
+                <header class="mb-4">
+                    <span class="badge bg-primary mb-3">@Model.BlogPost.Category</span>
+                    <h1 class="display-4 mb-3">@Model.BlogPost.Title</h1>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="text-muted">
+                            <i class="fas fa-user"></i> 
+                            <strong>@Model.BlogPost.Author?.UserName</strong>
+                            <span class="mx-2">|</span>
+                            <i class="fas fa-calendar"></i> 
+                            @Model.BlogPost.PublishedDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                            @if (Model.BlogPost.LastModifiedDate != null)
+                            {
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-edit"></i> 
+                                <span>Updated: @Model.BlogPost.LastModifiedDate.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                            <span class="mx-2">|</span>
+                            <i class="fas fa-eye"></i> @Model.BlogPost.ViewCount views
+                        </div>
+                        
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            @if (Model.BlogPost.AuthorId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                            {
+                                <div>
+                                    <a asp-page="Edit" asp-route-id="@Model.BlogPost.Id" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a asp-page="Delete" asp-route-id="@Model.BlogPost.Id" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.BlogPost.Tags))
+                    {
+                        <div class="mb-3">
+                            @foreach (var tag in Model.BlogPost.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                <span class="badge bg-secondary me-1">
+                                    <i class="fas fa-tag"></i> @tag.Trim()
+                                </span>
+                            }
+                        </div>
+                    }
+                </header>
+
+                <hr class="my-4" />
+
+                <div class="blog-content">
+                    @Html.Raw(Model.BlogPost.Content.Replace("\n", "<br/>"))
+                </div>
+            </article>
+
+            <hr class="my-5" />
+
+            <div class="text-center">
+                <a asp-page="Index" class="btn btn-lg btn-primary">
+                    <i class="fas fa-list"></i> View All Posts
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+}
+
+<style>
+    .blog-post {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .blog-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #333;
+    }
+</style>

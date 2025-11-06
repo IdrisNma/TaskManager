@@ -1,0 +1,79 @@
+@page
+@model TaskManager.Pages.Blog.EditModel
+@{
+    ViewData["Title"] = "Edit Blog Post";
+}
+
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <h1 class="mb-4">Edit Blog Post</h1>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <input type="hidden" asp-for="BlogPost.Id" />
+                    <input type="hidden" asp-for="BlogPost.AuthorId" />
+                    <input type="hidden" asp-for="BlogPost.PublishedDate" />
+                    <input type="hidden" asp-for="BlogPost.ViewCount" />
+                    
+                    <div class="mb-3">
+                        <label asp-for="BlogPost.Title" class="form-label"></label>
+                        <input asp-for="BlogPost.Title" class="form-control" />
+                        <span asp-validation-for="BlogPost.Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="BlogPost.Excerpt" class="form-label"></label>
+                        <textarea asp-for="BlogPost.Excerpt" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="BlogPost.Excerpt" class="text-danger"></span>
+                        <small class="form-text text-muted">This will be displayed on the blog list page.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="BlogPost.Content" class="form-label"></label>
+                        <textarea asp-for="BlogPost.Content" class="form-control" rows="10"></textarea>
+                        <span asp-validation-for="BlogPost.Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="BlogPost.Category" class="form-label"></label>
+                            <input asp-for="BlogPost.Category" class="form-control" />
+                            <span asp-validation-for="BlogPost.Category" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="BlogPost.Tags" class="form-label"></label>
+                            <input asp-for="BlogPost.Tags" class="form-control" />
+                            <span asp-validation-for="BlogPost.Tags" class="text-danger"></span>
+                            <small class="form-text text-muted">Separate tags with commas.</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="BlogPost.IsPublished" class="form-check-input" />
+                        <label asp-for="BlogPost.IsPublished" class="form-check-label"></label>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-page="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+}
