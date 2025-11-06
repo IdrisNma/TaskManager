@@ -12,6 +12,7 @@ public class ApplicationDbContext : IdentityDbContext
     }
     
     public DbSet<TaskItem> Tasks { get; set; }
+    public DbSet<BlogPost> BlogPosts { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -29,5 +30,12 @@ public class ApplicationDbContext : IdentityDbContext
             .WithMany()
             .HasForeignKey(t => t.CreatedByUserId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        // Configure BlogPost relationships
+        builder.Entity<BlogPost>()
+            .HasOne(b => b.Author)
+            .WithMany()
+            .HasForeignKey(b => b.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
